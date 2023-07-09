@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"go_notes_snippet/pkg/models"
+	"html/template"
 	"net/http"
 	"strconv"
 )
@@ -20,26 +21,28 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, snippet := range s {
-		fmt.Fprintf(w, "%v\n", snippet)
+	// Создаем экземпляр структуры templateData,
+	// содержащий срез с заметками.
+	data := &templateData{Notes: s}
+
+	files := []string{
+		"./ui/html/home.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
 	}
 
-	// files := []string{
-	//     "./ui/html/home.page.tmpl",
-	//     "./ui/html/base.layout.tmpl",
-	//     "./ui/html/footer.partial.tmpl",
-	// }
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
 
-	// ts, err := template.ParseFiles(files...)
-	// if err != nil {
-	//     app.serverError(w, err)
-	//     return
-	// }
-
-	// err = ts.Execute(w, nil)
-	// if err != nil {
-	//     app.serverError(w, err)
-	// }
+	// Передаем структуру templateData в шаблонизатор.
+	// Теперь она будет доступна внутри файлов шаблона через точку.
+	err = ts.Execute(w, data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
@@ -59,8 +62,25 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	data := &templateData{Note: s}
+
+	files := []string{
+		"./ui/html/show.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
 	// Отображаем весь вывод на странице.
-	fmt.Fprintf(w, "%v", s)
+	err = ts.Execute(w, data)
+	if err != nil {
+		app.serverError(w, err)
+	}
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
