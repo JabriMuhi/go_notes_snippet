@@ -83,6 +83,52 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *application) createPage(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+
+	files := []string{
+		"./ui/html/create.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
+
+	ts, err := template.ParseFiles(files...)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	err = ts.Execute(w, nil)
+	if err != nil {
+		app.serverError(w, err)
+	}
+	if r.FormValue("title") != "" && r.FormValue("content") != "" && r.FormValue("expires") != "" {
+		if r.Method != http.MethodPost {
+			w.Header().Set("Allow", http.MethodPost)
+			app.clientError(w, http.StatusMethodNotAllowed)
+			return
+		}
+
+		title := r.FormValue("title")
+		content := r.FormValue("content")
+		expires := r.FormValue("expires")
+
+		id, err := app.notes.Insert(title, content, expires)
+		if err != nil {
+			app.serverError(w, err)
+			return
+		}
+
+		// Перенаправляем пользователя на соответствующую страницу заметки.
+		http.Redirect(w, r, fmt.Sprintf("/snippet?id=%d", id), http.StatusSeeOther)
+	}
+	return
+}
+
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.Header().Set("Allow", http.MethodPost)
@@ -90,8 +136,8 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := "История про улитку"
-	content := "Улитка выползла из раковины,\nвытянула рожки,\nи опять подобрала их."
+	title := "asldkfhjsl"
+	content := "askjdhaskjdasdas"
 	expires := "7"
 
 	// Передаем данные в метод SnippetModel.Insert(), получая обратно

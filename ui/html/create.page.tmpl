@@ -1,0 +1,20 @@
+{{template "base" .}}
+
+{{define "title"}}Create Note{{end}}
+
+{{define "main"}}
+    <div class='snippet'>
+        <div class='metadata'>
+            <form method="POST">
+                <h2 style="text-align: center">Create Note:</h2>
+                <h1>Note's name:</h1>
+                <input type="text" name="title">
+                <h1>Content:</h1>
+                <textarea name="content" cols="30" rows="10"></textarea>
+                <h1>Expires:</h1>
+                <input type="number" name="expires">
+                <input type="submit" value="Create">
+            </form>
+        </div>
+    </div>
+{{end}}
